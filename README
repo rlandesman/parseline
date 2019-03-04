@@ -1,0 +1,6 @@
+Developed by Roee Landesman and Alon Schwarz 
+
+Limitations provided by the specifications sheet:
+	- Command Line Length >= 512 Bytes. In our program this will be the minimum as well. 
+	- Command line arguments > 10. In our program, we will accept 12 arguments. 
+	- Arguments to a command > 10. In our program, we will accept 12 arguments.
