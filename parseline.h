@@ -6,6 +6,7 @@
 #include <string.h>
 
 #define MAX_CMND_ARGS 512
+#define MAX_PIPE_LEN 10
 
 void printLine(int, char *);
 void remove_newline_ch(char *);

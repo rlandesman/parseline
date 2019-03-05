@@ -10,9 +10,23 @@ int main(int argc, char **argv){
 	char str[MAX_CMND_ARGS];
 	char *tempStr;
 	char *temp;
+	int extra;
+	char ch;
 
 	printf("line: ");
 	fgets(str, MAX_CMND_ARGS, stdin);
+
+	/* Check to see if the command line is too long after fgets */
+	if (str[strlen(str)-1] != '\n') {
+        extra = 0;
+        while (((ch = getchar()) != '\n') && (ch != EOF))
+            extra = 1;
+        if(extra == 1){
+        	printf("Command too long\n");
+        	exit(1);
+        }
+    }
+
 	if(checkDoubleBars(str) == -1){
 		printf("Invalid null command\n");
 		exit(1);
@@ -23,6 +37,10 @@ int main(int argc, char **argv){
 	char *token = strtok_r(str, "|", &end_str);
 
 	while(token != NULL){
+		if(stageCount > MAX_PIPE_LEN){
+			printf("pipeline too deep\n");
+			exit(1);
+		}
 		char *end_token;
 		remove_newline_ch(token);
 

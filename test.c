@@ -6,6 +6,7 @@ int main(int argc, char **argv){
 	for(; x < argc; x++){
 		bytes += sizeof(argv[x]);
 	}
+	
 	printf("Sizeof of argv: %d\n", bytes);
 	printf("ARGC %d\n", argc);
 }
