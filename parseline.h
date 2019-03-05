@@ -3,11 +3,21 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-#define MAX_CMND_ARGS 12
-#define MAX_ARGS_TO_CMND 12
-#define MAX_BYTE_LENGTH 512
-#define MAX_INPUT 20
-#define MAX_OUTPUT 20
+#define MAX_CMND_ARGS 512
+
+void printLine(int, char *);
+void remove_newline_ch(char *);
+int checkDoubleAliOUT(char *str);
+int checkDoubleAliIN(char *str);
+int checkDoubleBars(char *str);
+char *getCommand(char *str);
+void checkAmibiousInput(char *str);
+
+
+
+
+
 
 #endif
