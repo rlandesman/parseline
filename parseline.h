@@ -28,6 +28,10 @@ void remove_newline_ch(char *);
 char *getCommand(char *str);
 int inputErrorCheck(input *in);
 void initInput(char *str, input *in);
+void initializeStages(stage stageArray[MAX_PIPE_LEN]);
+void printStages(stage stageArray[MAX_PIPE_LEN], int stageCount, char *commands[MAX_PIPE_LEN]);
+
+
 
 
 
