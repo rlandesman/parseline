@@ -11,6 +11,7 @@ int main(int argc, char **argv){
 	char ch;
 	int i, p, k;
 	char str2[MAX_CMND_ARGS];
+	char* cmdstr;
 
 	printf("line: ");
 	fgets(str, MAX_CMND_ARGS, stdin);
@@ -19,7 +20,7 @@ int main(int argc, char **argv){
 	strncpy(str2,str, MAX_CMND_ARGS);
 	input fullString;
 	initInput(str2, &fullString);
-	inputErrorCheck(&fullString);
+	LineErrCheck(&fullString);
 
 
 	char *end_str;
@@ -31,7 +32,8 @@ int main(int argc, char **argv){
 	while(token != NULL){
 		char *end_token;
 		remove_newline_ch(token);
-		commands[stageCount] = token;
+		cmdstr = strdup(token);
+		commands[stageCount] = cmdstr;
 
 		/* printLine(stageCount, token); */
 		char *token2 = strtok_r(token, " ", &end_token);
@@ -64,6 +66,8 @@ int main(int argc, char **argv){
 		stageCount++;
 		token = strtok_r(NULL, "|", &end_str);
 	}
+	printf("%c", '\n');
+	printf("%c", '\n');
 	printStages(stageArray, stageCount, commands);
 }
 
@@ -71,18 +75,20 @@ void printStages(stage stageArray[MAX_PIPE_LEN], int stageCount, char *commands[
 	int i, p;
 	for(i = 0; i < stageCount; i++){
 		printLine(i, commands[i]);
+		printf("%11s", "input: ");
 		if (i == 0){
-			printf("     input: %s\n", stageArray[i].input);
+			printf("%s\n", stageArray[i].input);
 		}
 		else{
-			printf("     input: pipe form stage %d\n", i-1);
+			printf("pipe from stage %d\n", i-1);
 		}
-		/* TODO: strcmp sucks */
-		if ((i < stageCount - 1) && strcmp(stageArray[i].output, "original stdout")){	
-			printf("     output: pipe to stage %d\n", i+1);
+
+		printf("%11s", "output: ");
+		if ((i < stageCount - 1) && !strcmp(stageArray[i].output, "original stdout")){	
+			printf("pipe to stage %d\n", i+1);
 		}
 		else{
-			printf("     output: %s\n", stageArray[i].output);
+			printf("%s\n", stageArray[i].output);
 		}
 		printf("     argc: %d\n", stageArray[i].argc);
 		printf("     argv: ");
@@ -130,139 +136,124 @@ void remove_newline_ch(char *line)
 
 
 
-void inputErrorCheck(input *in) {
+void LineErrCheck(input *in) {
 	int stages = 0;
-	int cmdargs = 0;
-	int inset = 0; 
-	int outset = 0; 
-	char *curCmd;
+	int argcs = 0;
+	int AlligatorIn = 0; 
+	int AlligatorOut = 0; 
+	char * cmd;
 	int i;
 
-	for (i = 0; i < in->size; i++) {
-		if (!cmdargs) { 
-			if (in->words[i][0] == '|') {
-				fprintf(stderr, "Invalid null command.\n"); 
+	for (i = 0; i < in->len; i++) {
+
+		if (!argcs) {
+
+			if (in->str[i][0] == '|') {
+				fprintf(stderr, "invalid null command.\n"); 
 				exit(1);
 			}
-			else if(in->words[i][0] == '<'){
-				fprintf(stderr, "Invalid null command.\n"); 
-				exit(1);
-			} 
-			else if (in->words[i][0] == '>'){
-				fprintf(stderr, "Invalid null command.\n"); 
+
+			else if(in->str[i][0] == '<'){
+				fprintf(stderr, "invalid null command.\n"); 
 				exit(1);
 			}
+
+			else if (in->str[i][0] == '>'){
+				fprintf(stderr, "invalid null command.\n"); 
+				exit(1);
+			}
+
 			else {
 				if (++stages > MAX_PIPE_LEN) { 
-					fprintf(stderr, "Pipeline too deep.\n");
+					fprintf(stderr, "pipeline too deep.\n");
 					exit(1);
 				}
+
 			}
-		curCmd = in->words[i];
-		cmdargs += 1;
-		} 
-		else if (in->words[i][0] == '|'){
-			if (outset == 2){
-				fprintf(stderr, "%s: Ambiguous output.\n", curCmd);
+
+		cmd = in->str[i];
+		argcs += 1;
+
+		}
+
+		else if (in->str[i][0] == '|'){
+			if (AlligatorOut == 2){
+				fprintf(stderr, "%s: ambiguous output.\n", cmd);
+				exit(1);
 			}
 			else{
-				outset = 0;
-				cmdargs = 0;
-				inset = 1;
+				AlligatorOut = 0;
+				argcs = 0;
+				AlligatorIn = 1;
 			}
 		}
-		/*
-		else if (in->words[i][0] == '<'){
-			if (inset == 1){
-				fprintf(stderr, "%s: Ambiguous input.\n", curCmd);
+		else if (in->str[i][0] == '<'){
+			if (AlligatorIn == 1){
+				fprintf(stderr, "%s: ambiguous input\n", cmd);
 				exit(1);
 			}
-			else if (inset == 2){
-				fprintf(stderr, "%s: Bad input redirection.\n", curCmd);
+			else if (AlligatorIn == 2){
+				fprintf(stderr, "%s: bad input redirection.\n", cmd);
 				exit(1);
 			}
-			else { 
-				inset = 2;
-				if (in->words[i+1][0] == '|' || in->words[i+1][0] == '<' 
-					|| in->words[i+1][0] == '>' || in->words[i+1][0] == '\0') {
-					fprintf(stderr, "%s: Bad input redirection.\n", curCmd);
+			else{
+				AlligatorIn = 2;
+				if (in->str[i+1][0] == '|' || in->str[i+1][0] == '<' 
+					|| in->str[i+1][0] == '>' || in->str[i+1][0] == '\0'){
+					fprintf(stderr, "%s: bad input redirection.\n", cmd);
 					exit(1);
 				}
-				outset = 0;
-				cmdargs = 0;
-				inset = 1;
 			}
 		}
 
+		else if (in->str[i][0] == '>'){
+			if (AlligatorOut == 2) {
+				fprintf(stderr, "%s: bad input redirection.\n", cmd);
+				exit(1);
+			} 
+			else {
+				AlligatorOut = 2;
+				if (in->str[i+1][0] == '|'){
+					fprintf(stderr, "%s: bad input redirection.\n", cmd);
+					exit(1);
 
-
-		else if (in->words[i][0] == '>'){ 
-				if (outset == 2) { 
-					fprintf(stderr, "%s: Bad input redirection.\n", curCmd);
+				} 
+				if (in->str[i+1][0] == '<'){
+					fprintf(stderr, "%s: bad input redirection.\n", cmd);
 					exit(1);
 				} 
-				else { 
-					outset = 2;
-					if (in->words[i+1][0] == '|' || in->words[i+1][0] == '<' 
-						|| in->words[i+1][0] == '>' || in->words[i+1][0] == '\0') {
-						fprintf(stderr, "%s: Bad input redirection.\n", curCmd);
-						exit(1);
-					}
+				if(in->str[i+1][0] == '>'){
+					fprintf(stderr, "%s: bad input redirection.\n", cmd);
+					exit(1);
+				} 
+				if (in->str[i+1][0] == '\0') {
+					fprintf(stderr, "%s: bad input redirection.\n", cmd);
+					exit(1);
 				}
-		}*/
+			
 		else {
-			switch (in->words[i][0]) {
-
-				case '<':
-					if (inset == 1) { 
-						fprintf(stderr, "%s: Ambiguous input\n", curCmd);
-						exit(1);
-					} else if (inset == 2) { 
-						fprintf(stderr, "%s: Bad input redirection.\n", curCmd);
-						exit(1);
-					} else { 
-						inset = 2;
-						if (in->words[i+1][0] == '|' || in->words[i+1][0] == '<' 
-							|| in->words[i+1][0] == '>' || in->words[i+1][0] == '\0') {
-							fprintf(stderr, "%s: Bad input redirection.\n", curCmd);
-							exit(1);
-						}
-					}
-					break;
-				case '>': 
-					if (outset == 2) { /*if out already set by redir*/
-						fprintf(stderr, "%s: Bad input redirection.\n", curCmd);
-						exit(1);
-					} else { /*if not already set*/
-						outset = 2;
-						if (in->words[i+1][0] == '|' || in->words[i+1][0] == '<' /* if name is missing*/
-							|| in->words[i+1][0] == '>' || in->words[i+1][0] == '\0') {
-							fprintf(stderr, "%s: Bad input redirection.\n", curCmd);
-							exit(1);
-						}
-					}
-					break;
-				default:
-					if (++cmdargs > MAX_CMND_NUM) { /*check if args too long*/
-						fprintf(stderr, "%s: Too many arguments.\n", curCmd);
-						exit(1);
-					}
+			if (++argcs > MAX_CMND_NUM) { 
+				fprintf(stderr, "%s: Too many arguments.\n", cmd);
+				exit(1);
 			}
-
-		}
+		}	
+	}
+	}
 	}
 }
 
-void initInput(char *str, input *in) {
-	in->size = 0;
-	in->words[in->size++] = strtok(str, " \n");
 
-	while ((in->words[in->size++] = strtok(NULL, " \n"))) {
-		if (in->size == (10 * (10 + 3) + 1) 
-			&& in->words[in->size - 1] != NULL) {
+
+void initInput(char *str, input *in) {
+	in->len = 0;
+	in->str[in->len++] = strtok(str, " \n");
+
+	while ((in->str[in->len++] = strtok(NULL, " \n")) != NULL) {
+		if (in->len == (10 * (10 + 3) + 1) 
+			&& in->str[in->len - 1] != NULL) {
 			break;
 		}
 	}
 
-	in->size--; 
+	in->len--; 
 }

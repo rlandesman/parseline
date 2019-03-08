@@ -19,14 +19,14 @@ typedef struct stage{
 } stage;
 
 typedef struct input {
-	char *words[MAX_CMND_ARGS]; /*3 extra args for name, <, >*/
-	int size;
+	char *str[MAX_CMND_ARGS]; 
+	int len;
 } input;
 
 void printLine(int, char *);
 void remove_newline_ch(char *);
 char *getCommand(char *str);
-void inputErrorCheck(input *in);
+void LineErrCheck(input *in);
 void initInput(char *str, input *in);
 void initializeStages(stage stageArray[MAX_PIPE_LEN]);
 void printStages(stage stageArray[MAX_PIPE_LEN], int stageCount, char *commands[MAX_PIPE_LEN]);
